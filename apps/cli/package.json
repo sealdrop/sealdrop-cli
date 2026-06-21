@@ -1,6 +1,6 @@
 {
   "name": "@sealdrop/cli",
-  "version": "0.1.4",
+  "version": "0.1.5",
   "description": "End-to-end encrypted file transfers from the terminal",
   "homepage": "https://sealdrop.io",
   "repository": {

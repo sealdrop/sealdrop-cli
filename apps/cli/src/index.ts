@@ -4,7 +4,7 @@ import { downloadCommand } from "./download.js";
 import { deleteCommand, handoffCommand } from "./other-commands.js";
 import { pickFile } from "./filePicker.js";
 
-const VERSION = "0.1.4";
+const VERSION = "0.1.5";
 
 const HELP = `SealDrop CLI ${VERSION}
 
