@@ -8,6 +8,7 @@ import { execFileSync } from "node:child_process";
 import { chmodSync, copyFileSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
+import { inject } from "postject";
 
 const cliDir = dirname(dirname(fileURLToPath(import.meta.url)));
 const pkg = JSON.parse(readFileSync(join(cliDir, "package.json"), "utf8"));
@@ -72,17 +73,12 @@ if (platform === "darwin") {
 }
 
 console.log("[build-sea] injecting blob with postject...");
-const postjectArgs = [
-  outputPath,
-  "NODE_SEA_BLOB",
-  blobPath,
-  "--sentinel-fuse",
-  "NODE_SEA_FUSE_fce680ab2cc467b6e072b8b5df1996b2",
-];
-if (platform === "darwin") postjectArgs.push("--macho-segment-name", "NODE_SEA");
-execFileSync(platform === "win32" ? "npx.cmd" : "npx", ["postject", ...postjectArgs], {
-  cwd: cliDir,
-  stdio: "inherit",
+// Use postject's programmatic API directly rather than shelling out to its
+// CLI via npx — npx.cmd requires shell interpretation on Windows, which
+// execFileSync(..., {shell: false}) can't do (fails with EINVAL there).
+await inject(outputPath, "NODE_SEA_BLOB", readFileSync(blobPath), {
+  sentinelFuse: "NODE_SEA_FUSE_fce680ab2cc467b6e072b8b5df1996b2",
+  machoSegmentName: platform === "darwin" ? "NODE_SEA" : undefined,
 });
 
 if (platform === "darwin") {
