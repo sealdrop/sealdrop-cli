@@ -11,8 +11,17 @@ npm install --global @sealdrop/cli
 sealdrop --help
 ```
 
-Node.js 22 or newer is required. See [`apps/cli/README.md`](apps/cli/README.md)
-for commands and usage examples.
+Node.js 22 or newer is required. No Node.js? Standalone binaries are attached
+to every [release](https://github.com/sealdrop/sealdrop-cli/releases), with a
+signed checksum manifest (`cli-manifest.json`, verified against the public key
+at [sealdrop.io/cli-manifest-public.pem](https://sealdrop.io/cli-manifest-public.pem)):
+
+```bash
+curl -fsSL https://sealdrop.io/install-cli.sh | bash    # macOS / Linux
+irm https://sealdrop.io/install-cli.ps1 | iex            # Windows (PowerShell 7+)
+```
+
+See [`apps/cli/README.md`](apps/cli/README.md) for commands and usage examples.
 
 ## Repository layout
 
