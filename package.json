@@ -1,0 +1,22 @@
+{
+  "name": "sealdrop-cli-workspace",
+  "private": true,
+  "version": "0.0.0",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/sealdrop/sealdrop-cli"
+  },
+  "scripts": {
+    "build": "pnpm --filter @sealdrop/cli build",
+    "test": "pnpm -r test",
+    "typecheck": "pnpm -r typecheck"
+  },
+  "devDependencies": {
+    "typescript": "^6.0.0"
+  },
+  "engines": {
+    "node": ">=22",
+    "pnpm": ">=11"
+  }
+}

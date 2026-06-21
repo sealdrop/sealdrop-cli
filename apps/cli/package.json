@@ -1,0 +1,37 @@
+{
+  "name": "@sealdrop/cli",
+  "version": "0.1.2",
+  "description": "End-to-end encrypted file transfers from the terminal",
+  "homepage": "https://sealdrop.io",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/sealdrop/sealdrop-cli.git"
+  },
+  "bugs": {
+    "url": "https://github.com/sealdrop/sealdrop-cli/issues"
+  },
+  "keywords": ["encrypted", "file-transfer", "e2ee", "cli", "privacy"],
+  "license": "MIT",
+  "type": "module",
+  "bin": { "sealdrop": "dist/index.js" },
+  "files": ["dist", "README.md", "LICENSE"],
+  "engines": { "node": ">=22" },
+  "scripts": {
+    "build": "esbuild src/index.ts --bundle --platform=node --format=esm --target=node22 --external:qrcode --outfile=dist/index.js --banner:js='#!/usr/bin/env node'",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "qrcode": "^1.5.3"
+  },
+  "devDependencies": {
+    "@sealdrop/crypto": "workspace:*",
+    "@sealdrop/shared": "workspace:*",
+    "@types/node": "^25.9.3",
+    "@types/qrcode": "^1.5.5",
+    "esbuild": "^0.28.0",
+    "typescript": "^6.0.0",
+    "vitest": "^4.0.0"
+  },
+  "publishConfig": { "access": "public" }
+}
