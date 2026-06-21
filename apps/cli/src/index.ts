@@ -3,7 +3,7 @@ import { sendCommand } from "./send.js";
 import { downloadCommand } from "./download.js";
 import { deleteCommand, handoffCommand } from "./other-commands.js";
 
-const VERSION = "0.1.2";
+const VERSION = "0.1.3";
 
 const HELP = `SealDrop CLI ${VERSION}
 
