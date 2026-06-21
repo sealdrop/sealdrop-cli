@@ -91,7 +91,7 @@ describe("wrapKeyWithPassphrase / unwrapKeyWithPassphrase", () => {
     const fileKey = await generateFileKey();
     const wrapped = await wrapKeyWithPassphrase(fileKey, "passphrase1");
 
-    const tampered = wrapped.wrappedKey.slice(0, -1) + "X";
+    const tampered = (wrapped.wrappedKey[0] === "A" ? "B" : "A") + wrapped.wrappedKey.slice(1);
     await expect(
       unwrapKeyWithPassphrase(tampered, "passphrase1", wrapped.salt, wrapped.iv),
     ).rejects.toThrow();
