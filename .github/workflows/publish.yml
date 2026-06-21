@@ -64,6 +64,8 @@ jobs:
         with:
           node-version: 24
       - run: pnpm install --frozen-lockfile
+      - name: Run CLI test suite
+        run: pnpm test
       - name: Build SEA binary
         working-directory: apps/cli
         run: pnpm build:sea

@@ -17,18 +17,20 @@
   "files": ["dist", "README.md", "LICENSE"],
   "engines": { "node": ">=22" },
   "scripts": {
-    "build": "esbuild src/index.ts --bundle --platform=node --format=esm --target=node22 --external:qrcode --outfile=dist/index.js --banner:js='#!/usr/bin/env node'",
+    "build": "esbuild src/index.ts --bundle --platform=node --format=esm --target=node22 --external:qrcode --external:prompts --outfile=dist/index.js --banner:js='#!/usr/bin/env node'",
     "build:sea": "node scripts/build-sea.mjs",
     "typecheck": "tsc --noEmit",
     "test": "vitest run"
   },
   "dependencies": {
+    "prompts": "^2.4.2",
     "qrcode": "^1.5.3"
   },
   "devDependencies": {
     "@sealdrop/crypto": "workspace:*",
     "@sealdrop/shared": "workspace:*",
     "@types/node": "^25.9.3",
+    "@types/prompts": "^2.4.9",
     "@types/qrcode": "^1.5.5",
     "esbuild": "^0.28.0",
     "postject": "^1.0.0-alpha.6",
