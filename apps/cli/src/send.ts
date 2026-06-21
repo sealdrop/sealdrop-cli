@@ -9,7 +9,7 @@ import {
 import { MAX_FILE_SIZE_BYTES, SEND_EXPIRY_PRESETS, TRANSPORT_CHUNKS_PER_PART, type SendExpiryPreset } from "@sealdrop/shared";
 import { ApiClient, retry } from "./api.js";
 import { getUploadGrant } from "./auth.js";
-import { progress, readSecret } from "./io.js";
+import { ProgressBar, progress, readSecret } from "./io.js";
 import { terminalQr } from "./qr.js";
 import { stringOption, type ParsedArgs } from "./args.js";
 
@@ -59,12 +59,15 @@ export async function sendCommand(filePath: string, args: ParsedArgs): Promise<v
   let deleteToken: string | undefined;
   let expiresAt: string | undefined;
   try {
-    progress("Hashing file…", json);
+    const hashBar = new ProgressBar();
+    if (!json) hashBar.start(info.size, "Hashing");
     const hasher = createChainedHasher();
     for (let i = 0; i < realChunkCount; i++) {
       const length = Math.min(CHUNK_SIZE_BYTES, info.size - i * CHUNK_SIZE_BYTES);
       await hasher.update(await readRange(handle, i * CHUNK_SIZE_BYTES, length));
+      if (!json) hashBar.update(Math.min((i + 1) * CHUNK_SIZE_BYTES, info.size));
     }
+    if (!json) hashBar.stop();
     const digest = hasher.digest();
     if (!digest) throw new Error("failed to hash input file");
     const note = stringOption(args.options, "note");
@@ -85,6 +88,19 @@ export async function sendCommand(filePath: string, args: ParsedArgs): Promise<v
     expiresAt = initialized.expires_at;
     const status = await api.uploadStatus(fileId);
     const partCount = Math.ceil(chunkCount / TRANSPORT_CHUNKS_PER_PART);
+    const uploadBar = new ProgressBar();
+    let uploadedBytes = 0;
+    for (let p = 0; p < partCount; p++) {
+      if (status.uploaded_parts.includes(p)) {
+        const partChunkStart = p * TRANSPORT_CHUNKS_PER_PART;
+        const partChunkEnd = Math.min(chunkCount, partChunkStart + TRANSPORT_CHUNKS_PER_PART);
+        for (let c = partChunkStart; c < partChunkEnd; c++) {
+          const cLen = Math.min(CHUNK_SIZE_BYTES, info.size - c * CHUNK_SIZE_BYTES);
+          if (cLen > 0) uploadedBytes += cLen;
+        }
+      }
+    }
+    if (!json) uploadBar.start(info.size, "Encrypting & uploading");
     for (let part = 0; part < partCount; part++) {
       if (status.uploaded_parts.includes(part)) continue;
       const encryptedChunks: Uint8Array[] = [];
@@ -109,9 +125,17 @@ export async function sendCommand(filePath: string, args: ParsedArgs): Promise<v
       }
       const bytes = new Uint8Array(encryptedChunks.reduce((n, item) => n + item.byteLength, 0));
       let offset = 0; for (const item of encryptedChunks) { bytes.set(item, offset); offset += item.byteLength; }
-      progress(`Uploading part ${part + 1}/${partCount}…`, json);
+      if (!json) uploadBar.update(uploadedBytes);
       await retry(() => api.uploadPart(fileId!, part, bytes));
+      const partChunkStart = part * TRANSPORT_CHUNKS_PER_PART;
+      const partChunkEnd = Math.min(chunkCount, partChunkStart + TRANSPORT_CHUNKS_PER_PART);
+      for (let c = partChunkStart; c < partChunkEnd; c++) {
+        const cLen = Math.min(CHUNK_SIZE_BYTES, info.size - c * CHUNK_SIZE_BYTES);
+        if (cLen > 0) uploadedBytes += cLen;
+      }
+      if (!json) uploadBar.update(uploadedBytes);
     }
+    if (!json) uploadBar.stop();
     await retry(() => api.complete(fileId!));
   } catch (error) {
     if (fileId && deleteToken) await api.delete(fileId, deleteToken).catch(() => {});

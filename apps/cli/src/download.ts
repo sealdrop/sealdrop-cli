@@ -6,7 +6,7 @@ import {
   paddedLength, toBase64Url, unwrapKeyWithAccessCode, unwrapKeyWithPassphrase,
 } from "@sealdrop/crypto";
 import { ApiClient } from "./api.js";
-import { progress, readSecret } from "./io.js";
+import { ProgressBar, progress, readSecret } from "./io.js";
 import { stringOption, type ParsedArgs } from "./args.js";
 
 export function parseShareUrl(value: string): { url: URL; fileId: string } {
@@ -54,7 +54,8 @@ export async function downloadCommand(value: string, args: ParsedArgs): Promise<
   let written = 0;
   let integrity: "verified" | "unavailable" = "unavailable";
   try {
-    progress(`Downloading ${metadata.filename}…`, json);
+    const dlBar = new ProgressBar();
+    if (!json) dlBar.start(metadata.sizeBytes, "Downloading");
     const decrypted = decryptStream(await api.blob(fileId), key, new Uint8Array(fromBase64Url(serverMeta.file_iv)) as Uint8Array<ArrayBuffer>, decryptLength, undefined, chunkSize);
     const reader = decrypted.getReader();
     const hasher = createChainedHasher();
@@ -67,7 +68,9 @@ export async function downloadCommand(value: string, args: ParsedArgs): Promise<
       await output.write(original);
       await hasher.update(original);
       written += original.byteLength;
+      if (!json) dlBar.update(written);
     }
+    if (!json) dlBar.stop();
     if (written !== metadata.sizeBytes) throw new Error("download ended before the declared file size");
     if (metadata.sha256) {
       const digest = hasher.digest();
