@@ -32,3 +32,79 @@ jobs:
       - name: Publish package
         working-directory: apps/cli
         run: npm publish --access public
+
+  build-binaries:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          # ubuntu-24.04-arm and windows-11-arm are GitHub's standard (free)
+          # arm64 hosted runners for public repositories — confirmed GA as of
+          # the 2025-08-07 and 2025-04-14 GitHub Actions changelog entries.
+          # This repo is public, so no paid plan is required for any of these.
+          - os: ubuntu-latest
+            arch: x64
+          - os: ubuntu-24.04-arm
+            arch: arm64
+          - os: macos-15-intel
+            arch: x64
+          - os: macos-15
+            arch: arm64
+          - os: windows-latest
+            arch: x64
+          - os: windows-11-arm
+            arch: arm64
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v7
+      - uses: pnpm/action-setup@v6
+        with:
+          version: 11
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 24
+      - run: pnpm install --frozen-lockfile
+      - name: Build SEA binary
+        working-directory: apps/cli
+        run: pnpm build:sea
+      - name: Smoke test binary
+        working-directory: apps/cli/dist-sea
+        shell: bash
+        run: |
+          shopt -s nullglob
+          binaries=(sealdrop-*)
+          binary="${binaries[0]}"
+          chmod +x "$binary" || true
+          "./$binary" --version
+      - uses: actions/upload-artifact@v4
+        with:
+          name: binary-${{ matrix.os }}-${{ matrix.arch }}
+          path: apps/cli/dist-sea/sealdrop-*
+          if-no-files-found: error
+
+  release-assets:
+    needs: build-binaries
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 24
+      - uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+          pattern: binary-*
+          merge-multiple: true
+      - name: Build checksums + signed manifest
+        env:
+          SEALDROP_CLI_MANIFEST_PRIVATE_KEY_PEM: ${{ secrets.SEALDROP_CLI_MANIFEST_PRIVATE_KEY_PEM }}
+        run: node apps/cli/scripts/build-release-manifest.mjs artifacts
+      - name: Attach binaries + manifest to the release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            artifacts/sealdrop-*
+            artifacts/checksums.txt
+            artifacts/cli-manifest.json
