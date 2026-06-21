@@ -3,6 +3,12 @@ name: Publish to npm
 on:
   release:
     types: [published]
+  workflow_dispatch:
+    inputs:
+      release_tag:
+        description: Existing release tag to rebuild assets for
+        required: true
+        type: string
 
 permissions:
   contents: read
@@ -10,6 +16,7 @@ permissions:
 
 jobs:
   publish:
+    if: github.event_name == 'release'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
@@ -64,6 +71,10 @@ jobs:
         with:
           node-version: 24
       - run: pnpm install --frozen-lockfile
+      - name: Verify target release matches package version
+        env:
+          RELEASE_TAG: ${{ github.event.release.tag_name || inputs.release_tag }}
+        run: node -e "const t=process.env.RELEASE_TAG,v=require('./apps/cli/package.json').version;if(t!=='v'+v)throw new Error('Release '+t+' does not match v'+v)"
       - name: Run CLI test suite
         run: pnpm test
       - name: Build SEA binary
@@ -106,6 +117,7 @@ jobs:
       - name: Attach binaries + manifest to the release
         uses: softprops/action-gh-release@v2
         with:
+          tag_name: ${{ github.event.release.tag_name || inputs.release_tag }}
           files: |
             artifacts/sealdrop-*
             artifacts/checksums.txt
