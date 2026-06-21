@@ -2,6 +2,7 @@ import { parseArgs } from "./args.js";
 import { sendCommand } from "./send.js";
 import { downloadCommand } from "./download.js";
 import { deleteCommand, handoffCommand } from "./other-commands.js";
+import { pickFile } from "./filePicker.js";
 
 const VERSION = "0.1.4";
 
@@ -24,7 +25,8 @@ export async function run(argv = process.argv.slice(2)): Promise<void> {
   if (!command || command === "help" || argv.includes("--help")) { console.log(HELP); return; }
   if (command === "--version" || argv.includes("--version")) { console.log(VERSION); return; }
   const args = parseArgs(argv.slice(1));
-  const input = args.positionals[0];
+  let input = args.positionals[0];
+  if (!input && command === "send") input = await pickFile();
   if (!input) throw Object.assign(new Error(`${command} requires an input`), { usage: true });
   if (args.positionals.length > 1) throw Object.assign(new Error("too many positional arguments"), { usage: true });
   switch (command) {

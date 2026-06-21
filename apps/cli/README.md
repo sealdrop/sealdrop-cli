@@ -53,6 +53,8 @@ sealdrop send ./document.pdf --expires 3d --qr
 sealdrop send ./document.pdf --access-code --handoff
 ```
 
+Running `sealdrop send` with no file argument opens an interactive file picker for the current directory (skips `.git`, `node_modules`, and dotfiles). Type to fuzzy-filter, use the arrow keys to move the selection, Enter on a folder to open it or on a file to select it, the `../` entry to go back up, Ctrl+C to cancel. Requires an interactive terminal — scripts and CI should keep passing an explicit path.
+
 Send links use open-once expiry, standard size padding, and include a deletion credential by default. Available expiry values are `open-once`, `1h`, `today`, `3d`, and `7d`; padding levels are `standard`, `enhanced`, and `maximum`.
 
 For passphrase protection, use a hidden prompt or read the secret from a file/stdin instead of placing it in shell history:
