@@ -9,7 +9,7 @@
   },
   "scripts": {
     "typecheck": "tsc --noEmit",
-    "test": "NODE_OPTIONS=--max-old-space-size=8192 vitest run --maxWorkers=1"
+    "test": "vitest run"
   },
   "devDependencies": {
     "@types/node": "^25.9.3",
