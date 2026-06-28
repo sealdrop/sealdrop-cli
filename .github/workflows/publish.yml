@@ -115,7 +115,7 @@ jobs:
           SEALDROP_CLI_MANIFEST_PRIVATE_KEY_PEM: ${{ secrets.SEALDROP_CLI_MANIFEST_PRIVATE_KEY_PEM }}
         run: node apps/cli/scripts/build-release-manifest.mjs artifacts
       - name: Attach binaries + manifest to the release
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@v3
         with:
           tag_name: ${{ github.event.release.tag_name || inputs.release_tag }}
           files: |
