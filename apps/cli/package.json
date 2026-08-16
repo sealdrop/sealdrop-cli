@@ -29,13 +29,13 @@
   "devDependencies": {
     "@sealdrop/crypto": "workspace:*",
     "@sealdrop/shared": "workspace:*",
-    "@types/node": "^25.9.3",
+    "@types/node": "^26.2.0",
     "@types/prompts": "^2.4.9",
     "@types/qrcode": "^1.5.5",
-    "esbuild": "^0.28.0",
+    "esbuild": "^0.28.2",
     "postject": "^1.0.0-alpha.6",
-    "typescript": "^6.0.0",
-    "vitest": "^4.0.0"
+    "typescript": "^7.0.2",
+    "vitest": "^4.1.10"
   },
   "publishConfig": { "access": "public" }
 }
